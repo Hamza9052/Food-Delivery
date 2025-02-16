@@ -56,8 +56,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -67,20 +69,32 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.codegameapp.foodfast.MVVM.FoodMVVM
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    MVVM: FoodMVVM,
+    navController: NavController
+) {
     var actives by remember { mutableStateOf(false) }
     var active by remember { mutableStateOf(false) }
+    val coroutine = rememberCoroutineScope()
+    val listfood by MVVM.listFood.observeAsState(emptyList())
 //    val search by remember { mutableStateOf("") }
     var search by remember { mutableStateOf("") }
     val allItems = remember { List(100) { "Item $it" } } // Example 100 items
     var displayedItems by remember { mutableStateOf(allItems.take(4)) } // Start with 10 items
 
     val listState = rememberLazyGridState()
-
-
+    LaunchedEffect(Unit) {
+            MVVM.FetchData_food()
+    }
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo }
             .collect { visibleItems ->
@@ -228,14 +242,27 @@ fun HomeScreen() {
             columns = GridCells.Adaptive(140.dp),
             state = listState,
             modifier = Modifier
-                .padding(top = 30.dp)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(top = 30.dp, bottom = 50.dp)
         ) {
-            items(
-                displayedItems.size
-            ) { item ->
 
-                Product()
-            }
+                items(
+                    listfood.size
+                ) { item ->
+                    val Image = rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(navController.context)
+                            .data(listfood.get(item).imageUrl)
+                            .crossfade(true)
+                            .error(R.drawable.prof)
+                            .placeholder(R.drawable.prof)
+                            .build()
+                    )
+                    val name = listfood.get(item).name
+                    val rate = listfood.get(item).rate.toString()
+                    Product(image = Image,name,rate)
+                }
+
+
         }
 
 
@@ -243,7 +270,11 @@ fun HomeScreen() {
 }
 
 @Composable
-fun Product() {
+fun Product(
+    image:AsyncImagePainter,
+    name:String,
+    Rate:String
+) {
 
     Card(
         modifier = Modifier
@@ -258,19 +289,19 @@ fun Product() {
         ) {
             // Product Image
             Image(
-                painter = painterResource(R.drawable.humebarger), // Replace with actual image
+                painter =image, // Replace with actual image
                 contentDescription = "Product Image",
                 modifier = Modifier
                     .size(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.FillBounds
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Product Name & Description
             Text(
-                text = "Hamburger",
+                text = name,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = Color.Black
@@ -295,7 +326,7 @@ fun Product() {
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "4.8",
+                        text = Rate,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
@@ -318,8 +349,9 @@ fun Product() {
 }
 
 
-@Preview
-@Composable
-fun test1() {
-    HomeScreen()
-}
+//@Preview
+//@Composable
+//fun test1() {
+//
+//    HomeScreen()
+//}
