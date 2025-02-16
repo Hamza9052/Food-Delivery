@@ -4,11 +4,17 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomAppBar
@@ -33,20 +39,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.codegameapp.foodfast.BottomBar.BottomBarNav
+import com.codegameapp.foodfast.MVVM.FoodMVVM
 import com.codegameapp.foodfast.Screen.HomeScreen
 import com.codegameapp.foodfast.Screen.Screen
 import com.codegameapp.foodfast.ui.MyAppTheme
+import kotlin.getValue
 
 class MainActivity : AppCompatActivity() {
+
+    private val ViewModel:FoodMVVM by viewModels<FoodMVVM> ()
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             actionBar?.hide()
+
             MyAppTheme(){
                 val navController = rememberNavController()
                 Scaffold(
+                    contentWindowInsets = WindowInsets.safeDrawing,
                     modifier = Modifier
                         .fillMaxSize()
                         .fillMaxWidth(),
@@ -80,8 +92,16 @@ class MainActivity : AppCompatActivity() {
                             )
                         }
                     }
-                ) {
-                    MainScreenNavigation(navController)
+                ) {padding->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .fillMaxWidth()
+                            .safeDrawingPadding()
+                    ) {
+                        MainScreenNavigation(navController,ViewModel)
+                    }
+
                 }
             }
 
@@ -92,13 +112,13 @@ class MainActivity : AppCompatActivity() {
 
 
 @Composable
-fun MainScreenNavigation(navController: NavHostController) {
+fun MainScreenNavigation(navController: NavHostController,MVVM: FoodMVVM) {
 
     NavHost(navController, startDestination = Screen.Home.route!!) {
 
         //profile
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(MVVM,navController)
         }
         //pickUp
         composable(Screen.Profile.route!!) {
