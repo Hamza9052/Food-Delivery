@@ -1,6 +1,6 @@
 package com.codegameapp.foodfast.API
 
-import com.codegameapp.foodfast.Data.MealResponse
+import com.codegameapp.foodfast.Data.Food
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 
 interface ApiFood {
     companion object{
-        private const val Url ="https://www.themealdb.com/api/json/v1/1/"
+        private const val Url ="http://192.168.8.163:8080"
         fun create(): ApiFood {
             val client = OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS) // Increase connection timeout
@@ -28,9 +28,9 @@ interface ApiFood {
     }
 
 
-    interface TheMealDBApi {
-        @GET("lookup.php")
-        suspend fun getMealDetails(@Query("i") mealId: String): MealResponse
+    interface FoodAPI {
+        @GET("/food")
+        suspend fun getFoods(): Food
     }
 
 }
