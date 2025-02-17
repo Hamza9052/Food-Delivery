@@ -5,7 +5,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.gms.google-services")
     id("com.google.devtools.ksp")
-
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
 }
 
 android {
