@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,20 +52,52 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.codegameapp.foodfast.Data.DataFood
 import com.codegameapp.foodfast.R
+import com.google.android.datatransport.ProductData
+import com.google.common.reflect.TypeToken
+import com.google.gson.Gson
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(
+    navController: NavController,
+    dataFoodList: DataFood
 ) {
+
+
+
+    val Image = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(navController.context)
+            .data(dataFoodList.imageUrl)
+            .crossfade(true)
+            .error(R.drawable.logo)
+            .placeholder(R.drawable.logo)
+            .build()
+    )
+    val name = dataFoodList.name
+    val rate = dataFoodList.rate.toString()
+    val price = dataFoodList.price.toString()
+    val descriptor = dataFoodList.descriptor
     Scaffold(
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(50.dp),
+                colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
+                modifier = Modifier
+                    .height(50.dp)
+                    .background(Color.Transparent)
+                ,
                 navigationIcon = {
                     IconButton(
-                        onClick = {}
+                        onClick = {
+                            navController.navigate(Screen.Home.route!!)
+                        }
                     ) {
                         Icon(
                             contentDescription = "",
@@ -91,7 +124,8 @@ fun ProductScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxSize(),
+                .fillMaxSize()
+                .safeDrawingPadding(),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -104,7 +138,7 @@ fun ProductScreen(
             ) {
                 Image(
                     contentDescription = "",
-                    painter = painterResource(R.drawable.humebarger),
+                    painter = Image,
                     modifier = Modifier
                         .fillMaxSize(),
                     contentScale = ContentScale.FillBounds
@@ -124,7 +158,7 @@ fun ProductScreen(
                         .padding(bottom = 10.dp)
                 ) {
                     Text(
-                        text = "Humebarger",
+                        text = name,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.ExtraBold,
                         textAlign = TextAlign.Left
@@ -145,7 +179,7 @@ fun ProductScreen(
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "4.8",
+                        text = rate,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Gray,
@@ -155,7 +189,7 @@ fun ProductScreen(
                 Spacer(modifier = Modifier.weight(0.2f))
                 Text(
                     modifier = Modifier.padding(end = 8.dp),
-                    text = "The Cheeseburger Wendy's Burger is a classic fast food burger that packs a punch of flavor in every bite. Made with a juicy beef patty cooked to perfection, it's topped with melted American cheese, crispy lettuce, ripe tomato, and crunchy pickles.",
+                    text = descriptor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Light
                 )
@@ -254,7 +288,7 @@ fun ProductScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "$9.24",
+                            text = price,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color.White
@@ -294,8 +328,8 @@ fun ProductScreen(
 }
 
 
-@Preview
-@Composable
-fun test() {
-    ProductScreen()
-}
+//@Preview
+//@Composable
+//fun test() {
+//    ProductScreen()
+//}
