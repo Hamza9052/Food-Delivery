@@ -193,7 +193,7 @@ fun ProductScreen(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Light
                 )
-                Spacer(modifier = Modifier.weight(0.5f))
+                Spacer(modifier = Modifier.weight(1f))
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
@@ -268,10 +268,10 @@ fun ProductScreen(
                     }
 
                 }
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(0.5f))
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(80.dp),
+                    horizontalArrangement = Arrangement.spacedBy(100.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -317,7 +317,7 @@ fun ProductScreen(
                     }
 
                 }
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(0.7f))
             }
 
             Spacer(modifier = Modifier.weight(1f))
