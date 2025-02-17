@@ -1,6 +1,7 @@
 package com.codegameapp.foodfast
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -34,23 +35,31 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.codegameapp.foodfast.BottomBar.BottomBarNav
+import com.codegameapp.foodfast.Data.DataFood
 import com.codegameapp.foodfast.MVVM.FoodMVVM
+import com.codegameapp.foodfast.MVVM.ViewModelFactory
 import com.codegameapp.foodfast.Screen.HomeScreen
+import com.codegameapp.foodfast.Screen.ProductScreen
 import com.codegameapp.foodfast.Screen.Screen
 import com.codegameapp.foodfast.ui.MyAppTheme
+import kotlinx.serialization.json.Json
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import kotlin.getValue
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var MVVM: FoodMVVM
 
-    private val ViewModel:FoodMVVM by viewModels<FoodMVVM> ()
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MVVM = ViewModelProvider(this, ViewModelFactory(application)).get(FoodMVVM::class.java)
         enableEdgeToEdge()
         setContent {
             actionBar?.hide()
@@ -99,7 +108,32 @@ class MainActivity : AppCompatActivity() {
                             .fillMaxWidth()
                             .safeDrawingPadding()
                     ) {
-                        MainScreenNavigation(navController,ViewModel)
+                        NavHost(navController, startDestination = Screen.Home.route!!) {
+
+                            //profile
+                            composable(Screen.Home.route) {
+                                HomeScreen(MVVM,navController)
+                            }
+                            //pickUp
+                            composable(Screen.Profile.route!!) {
+                                // PickupScreen()
+                            }
+                            composable("product/{jsonData}")
+                            {backStackEntry->
+                                val jsonData = backStackEntry.arguments?.getString("jsonData") ?: ""
+                                val decodedJson = Uri.decode(jsonData)
+                                val dataProduct = Json.decodeFromString<DataFood>(decodedJson)
+                                ProductScreen(navController, dataProduct)
+                            }
+
+                            //camera
+                            composable(Screen.Message.route!!) {
+                                // CameraScreen()
+                            }
+                            composable(Screen.Favorite.route!!) {
+                                // CameraScreen()
+                            }
+                        }
                     }
 
                 }
@@ -111,28 +145,3 @@ class MainActivity : AppCompatActivity() {
 }
 
 
-@Composable
-fun MainScreenNavigation(navController: NavHostController,MVVM: FoodMVVM) {
-
-    NavHost(navController, startDestination = Screen.Home.route!!) {
-
-        //profile
-        composable(Screen.Home.route) {
-            HomeScreen(MVVM,navController)
-        }
-        //pickUp
-        composable(Screen.Profile.route!!) {
-            // PickupScreen()
-        }
-
-        //camera
-        composable(Screen.Message.route!!) {
-            // CameraScreen()
-        }
-        composable(Screen.Favorite.route!!) {
-            // CameraScreen()
-        }
-    }
-
-
-}
