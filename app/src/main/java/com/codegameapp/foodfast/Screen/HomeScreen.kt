@@ -1,5 +1,6 @@
 package com.codegameapp.foodfast.Screen
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -9,8 +10,10 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,8 +76,15 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.codegameapp.foodfast.Data.DataFood
 import com.codegameapp.foodfast.MVVM.FoodMVVM
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import kotlinx.serialization.serializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import android.util.Base64
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -245,7 +255,7 @@ fun HomeScreen(
                 .fillMaxSize(),
             contentPadding = PaddingValues(top = 30.dp, bottom = 50.dp)
         ) {
-
+            if (listfood.isNotEmpty()){
                 items(
                     listfood.size
                 ) { item ->
@@ -253,14 +263,17 @@ fun HomeScreen(
                         model = ImageRequest.Builder(navController.context)
                             .data(listfood.get(item).imageUrl)
                             .crossfade(true)
-                            .error(R.drawable.prof)
-                            .placeholder(R.drawable.prof)
+                            .error(R.drawable.logo)
+                            .placeholder(R.drawable.logo)
                             .build()
                     )
                     val name = listfood.get(item).name
                     val rate = listfood.get(item).rate.toString()
-                    Product(image = Image,name,rate)
+                    val data = listfood.get(item)
+                    Product(image = Image,name,rate,data,navController)
                 }
+
+            }
 
 
         }
@@ -273,13 +286,24 @@ fun HomeScreen(
 fun Product(
     image:AsyncImagePainter,
     name:String,
-    Rate:String
+    Rate:String,
+    data: DataFood,
+    navController: NavController
 ) {
+    val jsonData = Json.encodeToString(data)
+    val encodedJson = Uri.encode(jsonData)
 
     Card(
         modifier = Modifier
             .width(140.dp)
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable(
+                onClick = {
+                    navController.navigate("product/$encodedJson")
+                },
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
