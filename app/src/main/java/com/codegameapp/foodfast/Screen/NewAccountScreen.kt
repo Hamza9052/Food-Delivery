@@ -1,5 +1,7 @@
 package com.codegameapp.foodfast.Screen
 
+import android.R.id.icon
+import android.app.Dialog
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +17,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -22,8 +26,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,13 +46,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.codegameapp.foodfast.Data.UserData
+import com.codegameapp.foodfast.Event.UserEvent
+import com.codegameapp.foodfast.MVVM.FoodMVVM
 import com.codegameapp.foodfast.R
+import androidx.compose.ui.window.Dialog
+import kotlin.concurrent.timer
 
 @Composable
 fun NewAccountScreen(
-    navController: NavController
-){
+    navController: NavController,
+    MVVM: FoodMVVM,
+) {
     var showPassword by remember { mutableStateOf(value = false) }
+    var userData = remember { UserData() }
+    var isVerifi = MVVM.isEmailVerified.observeAsState(true)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -68,21 +82,22 @@ fun NewAccountScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxSize()
-                .background(color = colorResource(R.color.White), shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)),
+                .background(
+                    color = colorResource(R.color.White),
+                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                ),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.weight(0.2f))
 
             OutlinedTextField(
-                value = "user.loginId" ,
-                onValueChange ={
-//                    user = user.copy(
-//                        loginId = it
-//                    )
-                },label = {
+                value = userData.name,
+                onValueChange = {
+                    userData.name = it
+                }, label = {
                     Text(
-                        text = "UserName",
+                        text = "Full Name",
                         color = colorResource(R.color.BrowB),
                         fontWeight = FontWeight.SemiBold
                     )
@@ -102,12 +117,10 @@ fun NewAccountScreen(
             Spacer(modifier = Modifier.weight(0.1f))
 
             OutlinedTextField(
-                value = "user.emial" ,
-                onValueChange ={
-//                    user = user.copy(
-//                        emial = it
-//                    )
-                },label = {
+                value = userData.emial,
+                onValueChange = {
+                    userData.emial = it
+                }, label = {
                     Text(
                         text = "Email",
                         color = colorResource(R.color.BrowB),
@@ -129,13 +142,11 @@ fun NewAccountScreen(
             Spacer(modifier = Modifier.weight(0.1f))
 
             OutlinedTextField(
-                value = "user.password" ,
-                onValueChange ={
-//                    user = user.copy(
-//                        password = it
-//                    )
+                value = userData.password,
+                onValueChange = {
+                    userData.password = it
 
-                },label = {
+                }, label = {
                     Text(
                         text = "Password",
                         color = colorResource(R.color.BrowB),
@@ -152,11 +163,11 @@ fun NewAccountScreen(
                     color = colorResource(R.color.Black),
                     fontWeight = FontWeight.Bold
                 ),
-                visualTransformation = if (showPassword){
+                visualTransformation = if (showPassword) {
                     VisualTransformation.None
-                }else{
+                } else {
                     PasswordVisualTransformation()
-                },keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
                     if (showPassword) {
                         IconButton(onClick = { showPassword = false }) {
@@ -184,13 +195,20 @@ fun NewAccountScreen(
 
             Button(
                 onClick = {
+                    MVVM.action(UserEvent.CreateAccount(
+                        userData,
+                        {
+                            if (it == true) {
 
+                            }
+                        }
+                    ), navController.context)
                 },
                 modifier = Modifier
                     .width(330.dp)
                     .height(40.dp),
                 shape = RoundedCornerShape(30.dp),
-                colors = ButtonDefaults.buttonColors( colorResource(R.color.BrowB))
+                colors = ButtonDefaults.buttonColors(colorResource(R.color.BrowB))
 
             ) {
                 Text(
@@ -218,7 +236,7 @@ fun NewAccountScreen(
                     .height(40.dp),
                 shape = RoundedCornerShape(30.dp),
                 contentPadding = ButtonDefaults.ContentPadding,
-                colors = ButtonDefaults.buttonColors( colorResource(R.color.BrowB))
+                colors = ButtonDefaults.buttonColors(colorResource(R.color.BrowB))
 
             ) {
                 Text(
@@ -241,3 +259,4 @@ fun NewAccountScreen(
 //
 //    NewAccountScreen()
 //}
+

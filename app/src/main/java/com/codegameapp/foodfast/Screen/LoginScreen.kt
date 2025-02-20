@@ -51,14 +51,21 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.codegameapp.foodfast.Data.UserData
+import com.codegameapp.foodfast.Event.UserEvent
+import com.codegameapp.foodfast.MVVM.FoodMVVM
 import com.codegameapp.foodfast.R
 import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    navController: NavController
+    navController: NavController,
+    MVVM: FoodMVVM
 ){
     var showPassword by remember { mutableStateOf(value = false) }
+
+    var userData = remember { UserData()}
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,9 +107,9 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.weight(0.2f))
             OutlinedTextField(
-                value = "state.email" ,
+                value = userData.emial ,
                 onValueChange ={
-
+                    userData.emial = it
                 },label = {
                     Text(
                         text = "Email",
@@ -123,9 +130,9 @@ fun LoginScreen(
             Spacer(modifier = Modifier.weight(0.1f))
 
             OutlinedTextField(
-                value = "state.password" ,
+                value = userData.password ,
                 onValueChange ={
-
+                    userData.password = it
                 },label = {
                     Text(
                         text = "Password",
@@ -174,7 +181,23 @@ fun LoginScreen(
             Spacer(modifier = Modifier.weight(0.2f))
             Button(
                 onClick = {
-                    navController.navigate(Screen.Home.route!!)
+                    if (userData.emial.isNullOrEmpty() ||userData.password.isNullOrEmpty()){
+                        Toast.makeText(navController.context,"Password or Email is Empty", Toast.LENGTH_SHORT).show()
+                    }
+                    else{
+                        MVVM.action(UserEvent.Login(
+                            userData.emial,
+                            userData.password,{
+                                if (it == true){
+                                    navController.navigate(Screen.Home.route!!)
+                                }else{
+                                    Toast.makeText(navController.context,"Something Wrong", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        ),navController.context)
+
+                    }
+
                 },
                 colors = ButtonDefaults.buttonColors(colorResource(R.color.Original)),
                 modifier = Modifier
