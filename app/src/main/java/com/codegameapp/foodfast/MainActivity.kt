@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
                             ) {
                             Log.e("Screen", "I'm on the correct screen")
                         } else {
-                            Log.e("Screen", "I'm on a different screen")
+
                             BottomAppBar(
                                 modifier = Modifier
                                     .height(65.dp)
@@ -139,10 +139,10 @@ class MainActivity : AppCompatActivity() {
                         NavHost(navController, startDestination = Screen_.Login.route) {
 
                             composable(Screen_.Login.route) {
-                                LoginScreen(navController)
+                                LoginScreen(navController,MVVM)
                             }
                             composable(Screen_.Acc.route) {
-                                NewAccountScreen(navController)
+                                NewAccountScreen(navController,MVVM)
                             }
                             //profile
                             composable(Screen.Home.route!!) {

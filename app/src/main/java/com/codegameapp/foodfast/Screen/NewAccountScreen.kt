@@ -2,25 +2,33 @@ package com.codegameapp.foodfast.Screen
 
 import android.R.id.icon
 import android.app.Dialog
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -28,11 +36,12 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,6 +61,7 @@ import com.codegameapp.foodfast.Event.UserEvent
 import com.codegameapp.foodfast.MVVM.FoodMVVM
 import com.codegameapp.foodfast.R
 import androidx.compose.ui.window.Dialog
+import coil.size.Dimension
 import kotlin.concurrent.timer
 
 @Composable
@@ -59,8 +70,14 @@ fun NewAccountScreen(
     MVVM: FoodMVVM,
 ) {
     var showPassword by remember { mutableStateOf(value = false) }
-    var userData = remember { UserData() }
-    var isVerifi = MVVM.isEmailVerified.observeAsState(true)
+    var userData by remember { mutableStateOf(UserData()) }
+    var isVerifi = MVVM.isemailVerified.observeAsState(Boolean)
+    var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -94,11 +111,14 @@ fun NewAccountScreen(
             OutlinedTextField(
                 value = userData.name,
                 onValueChange = {
-                    userData.name = it
+                    userData = userData.copy(
+                        name = it
+                    )
+
                 }, label = {
                     Text(
                         text = "Full Name",
-                        color = colorResource(R.color.BrowB),
+                        color = colorResource(R.color.SaddleBrown),
                         fontWeight = FontWeight.SemiBold
                     )
                 },
@@ -119,11 +139,13 @@ fun NewAccountScreen(
             OutlinedTextField(
                 value = userData.emial,
                 onValueChange = {
-                    userData.emial = it
+                    userData = userData.copy(
+                        emial = it
+                    )
                 }, label = {
                     Text(
                         text = "Email",
-                        color = colorResource(R.color.BrowB),
+                        color = colorResource(R.color.SaddleBrown),
                         fontWeight = FontWeight.SemiBold
                     )
                 },
@@ -144,12 +166,14 @@ fun NewAccountScreen(
             OutlinedTextField(
                 value = userData.password,
                 onValueChange = {
-                    userData.password = it
+                    userData = userData.copy(
+                        password = it
+                    )
 
                 }, label = {
                     Text(
                         text = "Password",
-                        color = colorResource(R.color.BrowB),
+                        color = colorResource(R.color.SaddleBrown),
                         fontWeight = FontWeight.SemiBold
                     )
                 },
@@ -195,14 +219,16 @@ fun NewAccountScreen(
 
             Button(
                 onClick = {
+
                     MVVM.action(UserEvent.CreateAccount(
                         userData,
                         {
                             if (it == true) {
-
+                                navController.navigate(Screen_.Login.route)
                             }
                         }
                     ), navController.context)
+                    showDialog = true
                 },
                 modifier = Modifier
                     .width(330.dp)
@@ -219,7 +245,17 @@ fun NewAccountScreen(
                 )
 
             }
-
+            LaunchedEffect(Unit) {
+               MVVM.startEmailVerificationCheck()
+            }
+            if (isVerifi.value == true) {
+                showDialog = false // Dismiss dialog when email is verified
+                navController.navigate(Screen_.Login.route)
+            }
+            // Show dialog if verification is pending
+            if (showDialog) {
+                dialog({ showDialog = false })
+            }
 
 
             Spacer(modifier = Modifier.weight(0.1f))
@@ -251,6 +287,8 @@ fun NewAccountScreen(
             Spacer(modifier = Modifier.weight(0.7f))
         }
     }
+
+
 }
 
 //@Preview
@@ -259,4 +297,36 @@ fun NewAccountScreen(
 //
 //    NewAccountScreen()
 //}
+@Composable
+fun dialog(onDimension: () -> Unit) {
+    Dialog(onDismissRequest = onDimension) {
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .background(colorResource(R.color.BrowButton), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Verified,
+                    contentDescription = "",
+                    tint = colorResource(R.color.Green),
+                    modifier = Modifier.size(35.dp)
+                )
+                Text(
+                    "Please Verify your Email",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+            }
 
+        }
+    }
+
+
+}
