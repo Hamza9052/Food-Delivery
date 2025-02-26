@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -28,6 +29,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,12 +62,30 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     navController: NavController,
-    MVVM: FoodMVVM
-){
+    MVVM: FoodMVVM,
+) {
     var showPassword by remember { mutableStateOf(value = false) }
 
-    var userData = remember { UserData()}
+    var userData by remember { mutableStateOf(UserData()) }
+    val Logging by MVVM.isLoggedIn.observeAsState(true)
 
+    if (Logging == false) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxSize()
+                .background(
+                    color = colorResource(R.color.White),
+                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                ),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+        CircularProgressIndicator(
+            color = colorResource(R.color.Original)
+        )
+        }
+    } else {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -75,174 +95,195 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(75.dp))
-        Text(
-            "Login",
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-        Spacer(modifier = Modifier.height(75.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxSize()
-                .background(color = colorResource(R.color.White), shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.weight(0.3f))
-            Box (
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(100.dp)
-            ){
-                Image(
-                    painter = painterResource(R.drawable.logo),
-                    contentDescription = "",
-                    alignment = Alignment.Center,
-                    contentScale = ContentScale.FillBounds
-                )
 
-            }
 
-            Spacer(modifier = Modifier.weight(0.2f))
-            OutlinedTextField(
-                value = userData.emial ,
-                onValueChange ={
-                    userData.emial = it
-                },label = {
-                    Text(
-                        text = "Email",
-                        color = colorResource(R.color.Original),
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor =  colorResource(R.color.Original)),
-                modifier = Modifier.width(350.dp),
-                singleLine = true,
-                shape = RoundedCornerShape(15.dp),
-                textStyle = TextStyle(
-                    color =colorResource(R.color.Black),
-                    fontWeight = FontWeight.Bold
-                )
+            Spacer(modifier = Modifier.height(75.dp))
+            Text(
+                "Login",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
+            Spacer(modifier = Modifier.height(75.dp))
 
-            Spacer(modifier = Modifier.weight(0.1f))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .background(
+                        color = colorResource(R.color.White),
+                        shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                    ),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-            OutlinedTextField(
-                value = userData.password ,
-                onValueChange ={
-                    userData.password = it
-                },label = {
-                    Text(
-                        text = "Password",
-                        color = colorResource(R.color.Original),
-                        fontWeight = FontWeight.SemiBold
+                Spacer(modifier = Modifier.weight(0.3f))
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(100.dp)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.logo),
+                        contentDescription = "",
+                        alignment = Alignment.Center,
+                        contentScale = ContentScale.FillBounds
                     )
-                },
-                modifier = Modifier.width(350.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colorResource(R.color.Original)
-                ),
-                shape = RoundedCornerShape(15.dp),
-                textStyle = TextStyle(
-                    color = colorResource(R.color.Black),
-                    fontWeight = FontWeight.Bold
-                ),
-                visualTransformation = if (showPassword){
-                    VisualTransformation.None
-                }else{
-                    PasswordVisualTransformation()
-                },keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                trailingIcon = {
-                    if (showPassword) {
-                        IconButton(onClick = { showPassword = false }) {
-                            Icon(
-                                imageVector = Icons.Default.VisibilityOff,
-                                contentDescription = "hide_password",
-                                tint = colorResource(R.color.Original)
-                            )
-                        }
-                    } else {
-                        IconButton(
-                            onClick = { showPassword = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.Visibility,
-                                contentDescription = "hide_password",
-                                tint = colorResource(R.color.BrowB)
-                            )
-                        }
-                    }
+
                 }
-            )
 
+                Spacer(modifier = Modifier.weight(0.2f))
+                OutlinedTextField(
+                    value = userData.emial,
+                    onValueChange = {
+                        userData = userData.copy(
+                            emial = it
+                        )
+                    }, label = {
+                        Text(
+                            text = "Email",
+                            color = colorResource(R.color.SaddleBrown),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = colorResource(R.color.Original)),
+                    modifier = Modifier.width(350.dp),
+                    singleLine = true,
+                    shape = RoundedCornerShape(15.dp),
+                    textStyle = TextStyle(
+                        color = colorResource(R.color.Black),
+                        fontWeight = FontWeight.Bold
+                    )
+                )
 
-            Spacer(modifier = Modifier.weight(0.2f))
-            Button(
-                onClick = {
-                    if (userData.emial.isNullOrEmpty() ||userData.password.isNullOrEmpty()){
-                        Toast.makeText(navController.context,"Password or Email is Empty", Toast.LENGTH_SHORT).show()
-                    }
-                    else{
-                        MVVM.action(UserEvent.Login(
-                            userData.emial,
-                            userData.password,{
-                                if (it == true){
-                                    navController.navigate(Screen.Home.route!!)
-                                }else{
-                                    Toast.makeText(navController.context,"Something Wrong", Toast.LENGTH_SHORT).show()
-                                }
+                Spacer(modifier = Modifier.weight(0.1f))
+
+                OutlinedTextField(
+                    value = userData.password,
+                    onValueChange = {
+                        userData = userData.copy(
+                            password = it
+                        )
+                    }, label = {
+                        Text(
+                            text = "Password",
+                            color = colorResource(R.color.SaddleBrown),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    modifier = Modifier.width(350.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colorResource(R.color.Original)
+                    ),
+                    shape = RoundedCornerShape(15.dp),
+                    textStyle = TextStyle(
+                        color = colorResource(R.color.Black),
+                        fontWeight = FontWeight.Bold
+                    ),
+                    visualTransformation = if (showPassword) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        if (showPassword) {
+                            IconButton(onClick = { showPassword = false }) {
+                                Icon(
+                                    imageVector = Icons.Default.VisibilityOff,
+                                    contentDescription = "hide_password",
+                                    tint = colorResource(R.color.Original)
+                                )
                             }
-                        ),navController.context)
-
+                        } else {
+                            IconButton(
+                                onClick = { showPassword = true }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Visibility,
+                                    contentDescription = "hide_password",
+                                    tint = colorResource(R.color.BrowB)
+                                )
+                            }
+                        }
                     }
-
-                },
-                colors = ButtonDefaults.buttonColors(colorResource(R.color.Original)),
-                modifier = Modifier
-                    .width(330.dp)
-                    .height(40.dp),
-                shape = RoundedCornerShape(30.dp)
-
-            ) {
-                Text(
-                    text = "Log In",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = colorResource(R.color.White)
                 )
 
+
+                Spacer(modifier = Modifier.weight(0.2f))
+                Button(
+                    onClick = {
+                        if (userData.emial.isNullOrEmpty() || userData.password.isNullOrEmpty()) {
+                            Toast.makeText(
+                                navController.context,
+                                "Password or Email is Empty",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        else {
+
+                            MVVM.action(UserEvent.Login(
+                                userData.emial,
+                                userData.password, {
+                                    if (it == true) {
+                                        navController.navigate(Screen.Home.route!!)
+                                    } else {
+                                        Toast.makeText(
+                                            navController.context,
+                                            "Something Wrong",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            ), navController.context)
+
+                        }
+
+                    },
+                    colors = ButtonDefaults.buttonColors(colorResource(R.color.Original)),
+                    modifier = Modifier
+                        .width(330.dp)
+                        .height(40.dp),
+                    shape = RoundedCornerShape(30.dp)
+
+                ) {
+                    Text(
+                        text = "Log In",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = colorResource(R.color.White)
+                    )
+
+                }
+
+
+
+                Spacer(modifier = Modifier.weight(0.1f))
+
+                Button(
+                    onClick = {
+                        navController.navigate(Screen_.Acc.route)
+                    },
+                    modifier = Modifier
+                        .width(330.dp)
+                        .height(40.dp),
+                    shape = RoundedCornerShape(30.dp),
+                    contentPadding = ButtonDefaults.ContentPadding,
+                    colors = ButtonDefaults.buttonColors(colorResource(R.color.Original))
+
+                ) {
+                    Text(
+                        text = "Create New Account",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = colorResource(R.color.White)
+                    )
+
+                }
+
+                Spacer(modifier = Modifier.weight(0.4f))
             }
 
-
-
-            Spacer(modifier = Modifier.weight(0.1f))
-
-            Button(
-                onClick = {
-                    navController.navigate(Screen_.Acc.route)
-                },
-                modifier = Modifier
-                    .width(330.dp)
-                    .height(40.dp),
-                shape = RoundedCornerShape(30.dp),
-                contentPadding = ButtonDefaults.ContentPadding,
-                colors = ButtonDefaults.buttonColors( colorResource(R.color.Original))
-
-            ) {
-                Text(
-                    text = "Create New Account",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = colorResource(R.color.White)
-                )
-
-            }
-
-            Spacer(modifier = Modifier.weight(0.4f))
         }
-
     }
 }
 //@Preview

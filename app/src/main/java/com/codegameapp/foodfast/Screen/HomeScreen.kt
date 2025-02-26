@@ -86,6 +86,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import android.util.Base64
 
+import androidx.compose.material3.CircularProgressIndicator
+
+import androidx.compose.ui.res.colorResource
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -96,6 +100,7 @@ fun HomeScreen(
     var active by remember { mutableStateOf(false) }
     val coroutine = rememberCoroutineScope()
     val listfood by MVVM.listFood.observeAsState(emptyList())
+    val Logging by MVVM.isLoggedIn.observeAsState(Boolean)
 //    val search by remember { mutableStateOf("") }
     var search by remember { mutableStateOf("") }
     val allItems = remember { List(100) { "Item $it" } } // Example 100 items
@@ -127,159 +132,169 @@ fun HomeScreen(
             }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxSize()
-    ) {
-        Spacer(modifier = Modifier.weight(1f))
-        AnimatedVisibility(
-            visible = !actives, // Toggle visibility based on actives state
-            enter = fadeIn(tween(durationMillis = 300)), // Fade in animation
-            exit = fadeOut(tween(durationMillis = 300))  // Fade out animation
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.weight(0.1f))
-                Column() {
-                    Text(
-                        text = "Fast Food",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.Black
-                    )
-                    Text(
-                        text = "Order your favourite food!",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.Black
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Image(
-                    painter = painterResource(R.drawable.prof),
-                    contentDescription = "Profile",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(color = Color.Transparent)
-                        .clip(RoundedCornerShape(10.dp))
-                )
-                Spacer(modifier = Modifier.weight(0.1f))
 
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-        SearchBar(
-            shadowElevation = 4.dp,
-            query = search,
+        Column(
             modifier = Modifier
-                .height(60.dp)
                 .fillMaxWidth()
-                .padding(end = if (active) 0.dp else 8.dp),
-            colors = SearchBarDefaults.colors(containerColor = Color.White),
-            onQueryChange = { search = it },
-            onSearch = {},
-            active = active,
-            onActiveChange = { active = it },
-            placeholder = {
-                Text(
-                    text = "Search",
-                    color = Color.DarkGray,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium
+                .fillMaxSize()
+        ) {
+            if(Logging == false){
+
+                CircularProgressIndicator(
+                    trackColor = colorResource(R.color.Original)
                 )
-            },
-            leadingIcon = {
-                if (active) {
-                    AnimatedVisibility(
-                        visible = active,
-                        exit = fadeOut(animationSpec = tween(50)) + slideOutHorizontally(
-                            targetOffsetX = { it },
-                            animationSpec = tween(50, easing = FastOutSlowInEasing)
-                        ),
-                        enter = fadeIn(animationSpec = tween(50)) + slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec = tween(50, easing = FastOutSlowInEasing)
+
+            }else{
+            Spacer(modifier = Modifier.weight(1f))
+            AnimatedVisibility(
+                visible = !actives, // Toggle visibility based on actives state
+                enter = fadeIn(tween(durationMillis = 300)), // Fade in animation
+                exit = fadeOut(tween(durationMillis = 300))  // Fade out animation
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.weight(0.1f))
+                    Column() {
+                        Text(
+                            text = "Fast Food",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.Black
                         )
-                    ) {
-                        IconButton(onClick = { active = false }) {
+                        Text(
+                            text = "Order your favourite food!",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = Color.Black
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Image(
+                        painter = painterResource(R.drawable.prof),
+                        contentDescription = "Profile",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(color = Color.Transparent)
+                            .clip(RoundedCornerShape(10.dp))
+                    )
+                    Spacer(modifier = Modifier.weight(0.1f))
+
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+            SearchBar(
+                shadowElevation = 4.dp,
+                query = search,
+                modifier = Modifier
+                    .height(60.dp)
+                    .fillMaxWidth()
+                    .padding(end = if (active) 0.dp else 8.dp),
+                colors = SearchBarDefaults.colors(containerColor = Color.White),
+                onQueryChange = { search = it },
+                onSearch = {},
+                active = active,
+                onActiveChange = { active = it },
+                placeholder = {
+                    Text(
+                        text = "Search",
+                        color = Color.DarkGray,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                leadingIcon = {
+                    if (active) {
+                        AnimatedVisibility(
+                            visible = active,
+                            exit = fadeOut(animationSpec = tween(50)) + slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(50, easing = FastOutSlowInEasing)
+                            ),
+                            enter = fadeIn(animationSpec = tween(50)) + slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(50, easing = FastOutSlowInEasing)
+                            )
+                        ) {
+                            IconButton(onClick = { active = false }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Close",
+                                    modifier = Modifier.size(25.dp),
+                                    tint = Color.DarkGray
+                                )
+                            }
+                        }
+                    }
+                    else {
+                        AnimatedVisibility(
+                            visible = !active,
+                            exit = fadeOut(animationSpec = tween(50)) + slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(50, easing = FastOutSlowInEasing)
+                            ),
+                            enter = fadeIn(animationSpec = tween(50)) + slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(50, easing = FastOutSlowInEasing)
+                            )
+                        ) {
+
                             Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = "Close",
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = "Search",
                                 modifier = Modifier.size(25.dp),
                                 tint = Color.DarkGray
                             )
+
                         }
+                        search = ""
                     }
-                }
-                else {
-                    AnimatedVisibility(
-                        visible = !active,
-                        exit = fadeOut(animationSpec = tween(50)) + slideOutHorizontally(
-                            targetOffsetX = { it },
-                            animationSpec = tween(50, easing = FastOutSlowInEasing)
-                        ),
-                        enter = fadeIn(animationSpec = tween(50)) + slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec = tween(50, easing = FastOutSlowInEasing)
-                        )
-                    ) {
+                })
+            {
 
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search",
-                            modifier = Modifier.size(25.dp),
-                            tint = Color.DarkGray
-                        )
 
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(140.dp),
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(top = 30.dp, bottom = 50.dp)
+            ) {
+                if (listfood.isNotEmpty()){
+                    items(
+                        listfood.size
+                    ) { item ->
+                        val Image = rememberAsyncImagePainter(
+                            model = ImageRequest.Builder(navController.context)
+                                .data(listfood.get(item).imageUrl)
+                                .crossfade(true)
+                                .error(R.drawable.logo)
+                                .placeholder(R.drawable.logo)
+                                .build()
+                        )
+                        val name = listfood.get(item).name
+                        val rate = listfood.get(item).rate.toString()
+                        val data = listfood.get(item)
+                        Product(image = Image,name,rate,data,navController)
                     }
-                    search = ""
-                }
-            })
-        {
 
-
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(140.dp),
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(top = 30.dp, bottom = 50.dp)
-        ) {
-            if (listfood.isNotEmpty()){
-                items(
-                    listfood.size
-                ) { item ->
-                    val Image = rememberAsyncImagePainter(
-                        model = ImageRequest.Builder(navController.context)
-                            .data(listfood.get(item).imageUrl)
-                            .crossfade(true)
-                            .error(R.drawable.logo)
-                            .placeholder(R.drawable.logo)
-                            .build()
-                    )
-                    val name = listfood.get(item).name
-                    val rate = listfood.get(item).rate.toString()
-                    val data = listfood.get(item)
-                    Product(image = Image,name,rate,data,navController)
                 }
+
 
             }
 
 
         }
-
-
     }
+
 }
 
 @Composable
