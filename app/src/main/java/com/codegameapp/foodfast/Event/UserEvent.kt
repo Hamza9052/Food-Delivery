@@ -1,5 +1,6 @@
 package com.codegameapp.foodfast.Event
 
+import androidx.compose.runtime.Composable
 import com.codegameapp.foodfast.Data.UserData
 
 interface UserEvent {
