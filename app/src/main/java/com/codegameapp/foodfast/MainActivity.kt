@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
                             .fillMaxWidth()
                             .safeDrawingPadding()
                     ) {
-                        NavHost(navController, startDestination = Screen_.Login.route) {
+                        NavHost(navController, startDestination = Screen.Home.route!!) {
 
                             composable(Screen_.Login.route) {
                                 LoginScreen(navController,MVVM)

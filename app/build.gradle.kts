@@ -12,6 +12,11 @@ android {
     namespace = "com.codegameapp.foodfast"
     compileSdk = 35
 
+    val Key:String = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir,providers)
+        .getProperty("supebaseKey")
+    val Url:String = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir,providers)
+        .getProperty("supebaseUrl")
+
     defaultConfig {
         applicationId = "com.codegameapp.foodfast"
         minSdk = 24
@@ -20,11 +25,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String","supebaseKey","\"$Key\"")
+        buildConfigField("String","supebaseUrl","\"$Url\"")
     }
+
     packagingOptions {
         resources {
             excludes += "META-INF/DEPENDENCIES"
         }
+    }
+    buildFeatures{
+        buildConfig = true
+        compose = true
     }
     buildTypes {
         release {
@@ -79,6 +91,8 @@ dependencies {
     // Dependency Injection
     implementation(libs.hilt.android)
     implementation(libs.firebase.storage)
+    implementation(libs.transport.api)
+    implementation(libs.transport.api)
     // Test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -118,5 +132,9 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
 
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.28.0")
+
+    /////
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:1.3.2")
+    implementation("io.ktor:ktor-client-android:3.1.3")
 
 }
