@@ -21,6 +21,8 @@ import com.codegameapp.foodfast.API.ApiFood
 import com.codegameapp.foodfast.Data.DataFood
 import com.codegameapp.foodfast.Data.UserData
 import com.codegameapp.foodfast.Event.UserEvent
+import com.codegameapp.foodfast.SaveToken.save_token
+import com.codegameapp.foodfast.supeConnect.SupeBase
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -28,6 +30,8 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.jan.supabase.gotrue.gotrue
+import io.github.jan.supabase.gotrue.providers.builtin.Email
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -38,17 +42,6 @@ import javax.inject.Inject
 class FoodMVVM @Inject constructor(application: Application) : ViewModel() {
 
 
-    fun action(event: UserEvent, context: Context) {
-        when (event) {
-            is UserEvent.Login -> Logins(event.email, event.password, event.state, context)
-            is UserEvent.CreateAccount -> CreateAccount(
-                event.user, event.state, context
-            )
-
-            is UserEvent.signOut -> signout(event.state, context)
-//            is UserEvent.Upload_Image -> upload(event.image,context)
-        }
-    }
 
     private val _listFood = MutableLiveData<List<DataFood>>(mutableListOf<DataFood>())
     val listFood: LiveData<List<DataFood>> get() = _listFood.map { it.toList() }
@@ -67,198 +60,95 @@ class FoodMVVM @Inject constructor(application: Application) : ViewModel() {
 
     }
 
-    private var token = MutableStateFlow("")
-
-    private val id = MutableLiveData("")
-    private val name = MutableLiveData("")
-    val _name: LiveData<String> get() = name
-    private val _isemailVerified = MutableLiveData<Boolean>() // Default to logged out
-    val isemailVerified: LiveData<Boolean> = _isemailVerified
-
-    private val _isLoggedIn = MutableLiveData<Boolean>() // Default to logged out
-    val isLoggedIn: LiveData<Boolean> = _isLoggedIn
-
-
-    private fun CreateAccount(
-        User: UserData,
-        state: (state: Boolean) -> Unit,
+    fun singUp(
         context: Context,
-    ) {
-
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                token.update { task.result.toString() }
-                Log.d("token success", "CreateAccount: $token")
+        userEmail: String,
+        userPassword: String
+    ){
+        viewModelScope.launch(){
+            try {
+               SupeBase.supabase.gotrue.signUpWith(Email){
+                    email = userEmail
+                    password = userPassword
+                }
+                saveToken(context)
+                Log.e("checkIsSuccess","successful singUp")
+            }catch (e: Exception){
+                Log.e("checkIsSuccess","Error singUp: $e")
             }
         }
-
-        Firebase.auth.createUserWithEmailAndPassword(User.emial, User.password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-
-                    if (task.result.user != null) {
-
-                        task.result.user?.sendEmailVerification()?.addOnSuccessListener {
-
-                            FirebaseFirestore.getInstance().collection("users")
-                                .document(task.result.user?.uid!!)
-                                .set(
-                                    hashMapOf(
-                                        "password" to User.password,
-                                        "name_user" to User.name,
-                                        "FcmToken" to token.value
-                                    )
-                                ).addOnSuccessListener {
-                                    state(true)
-                                }.addOnFailureListener {
-                                    // Handle Firestore error
-                                    Log.e(
-                                        "CreateAccount",
-                                        "Error saving user to Firestore: ${it.message}"
-                                    )
-                                    state(false)
-                                }
-
-
-                            Log.d("CreateAccount", "Verification email sent successfully.")
-
-
-                        }?.addOnFailureListener {
-                            Log.e("CreateAccount", "Error saving user to Firestore: ${it.message}")
-                            state(false)
-                        }
-
-
-                        Log.e(
-                            "CreateAccount",
-                            "Account creation failed: ${task.exception?.message}"
-                        )
-                        state(false)
-                    }
-                }
-
-            }
     }
 
-
-    private fun Logins(
-        emial: String,
-        password: String,
-        state: (state: Boolean) -> Unit,
+    fun login(
         context: Context,
-    ) {
-        _isLoggedIn.value = false
-
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                token.update { task.result.toString() }
+        userEmail: String,
+        userPassword: String
+    ){
+        viewModelScope.launch(){
+            try {
+                SupeBase.supabase.gotrue.loginWith(Email){
+                    email = userEmail
+                    password = userPassword
+                }
+                saveToken(context)
+                Log.e("checkIsSuccess","successful login")
+            }catch (e: Exception){
+                Log.e("checkIsSuccess","Error login: $e")
             }
         }
-        Firebase.auth.signInWithEmailAndPassword(emial, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-
-                    Log.d(TAG, "Login:success")
-                    id.value = task.result.user?.uid!!
-                    state(true)
-                    FirebaseFirestore.getInstance()
-                        .collection("users").document(id.value.toString())
-                        .update("FcmToken", token.value).addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Log.d("token Success", "Logins: isSuccessful")
-                            } else {
-                                Log.e("token Failed", "Logins: ${task.exception}")
-                            }
-                        }
-                _isLoggedIn.value = true
-//                FirebaseFirestore.getInstance()
-//                    .collection("users")
-//                    .document(id.value.toString()).get()
-//                    .addOnSuccessListener { document ->
-//                        name.value = document.getString("first_name").toString()
-//
-//                        val sharedPreferences: SharedPreferences =
-//                            context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-//                        val editor = sharedPreferences.edit()
-//                            .putString("uid", id.value)
-////                            .putString("login", _isLoggedIn.value.toString())
-//                            .putString("name", name.value)
-//                            .putString("password", password)
-//                            .putString("email", emial)
-//                        editor.apply()
-//                    }
-
-
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.e(TAG, "Login:failure", task.exception)
-                    Toast.makeText(
-                        context,
-                        "Password or Email incorrect.",
-                        Toast.LENGTH_SHORT,
-                    ).show()
-
-
-                }
-            }
-
-
     }
 
-    private fun signout(state: (state: Boolean) -> Unit, context: Context) {
-        _isemailVerified.value = false
-        Log.e("logout", "im here")
-        Firebase.auth.signOut()
-        state(true)
-        FirebaseFirestore.getInstance()
-            .collection("users").document(id.value.toString())
-            .update("FcmToken", "").addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("token Success", "Logins: isSuccessful")
-                } else {
-                    Log.e("token Failed", "Logins: ${task.exception}")
-                }
+    fun logout(
+        context: Context,
+        userEmail: String,
+        userPassword: String
+    ){
+        viewModelScope.launch(){
+            try {
+                SupeBase.supabase.gotrue.logout()
+                Log.e("checkIsSuccess","successful logout")
+            }catch (e: Exception){
+                Log.e("checkIsSuccess","Error logout: $e")
             }
-
-        val sharedPreferences: SharedPreferences =
-            context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit()
-            .clear()
-            .apply()
-
-
-    }
-
-    fun checkEmailVerification() {
-        val user = Firebase.auth.currentUser
-        user?.reload() // Reload the user data to check for updates
-        Log.e("Verifiy","${user}")
-        Log.e("Verifiy","${user?.isEmailVerified}")
-        if (user?.isEmailVerified == true) {
-            _isemailVerified.value = user?.isEmailVerified // Update LiveData if email is verified
-        } else {
-            _isemailVerified.value = user?.isEmailVerified // Keep it false if email is not verified
         }
     }
+    fun isUserLoggedIn(
+        context: Context
+    ){
 
-    fun startEmailVerificationCheck() {
-        viewModelScope.launch {
-            // Check immediately after sending the verification email
-            delay(2000) // Wait for 2 seconds, allowing the user to start verifying
-            checkEmailVerification() // Check if email is verified
-
-            // You could use a loop or a delayed check to keep trying after a certain interval
-            repeat(10) { // Try 5 times with a 5-second interval
-                delay(5000)
-                checkEmailVerification()
-                if (isemailVerified.value == true) {
-                    return@launch // Exit if email is verified
+        viewModelScope.launch(){
+            try {
+                val token = getToken(context)
+                if (token.isNullOrEmpty()){
+                    Log.e("checkIsUserLoggedIn","User is not logged In")
+                } else{
+                    SupeBase.supabase.gotrue.retrieveUser(token)
+                    SupeBase.supabase.gotrue.refreshCurrentSession()
+                    saveToken(context)
+                    Log.e("checkIsUserLoggedIn","User is logged In")
                 }
+            }catch (e: Exception){
+                Log.e("checkIsUserLoggedIn","Error of checking: $e")
             }
         }
 
     }
+
+
+
+
+    private fun saveToken(context: Context){
+        viewModelScope.launch(){
+            val accessToken = SupeBase.supabase.gotrue.currentAccessTokenOrNull()
+            val sharedPref = save_token(context)
+            sharedPref.saveStringData("accessToken",accessToken)
+        }
+    }
+    private fun getToken(context: Context):String?{
+            val sharedPref = save_token(context)
+           return sharedPref.getStringData("accessToken")
+    }
+
 
 }
     class ViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
